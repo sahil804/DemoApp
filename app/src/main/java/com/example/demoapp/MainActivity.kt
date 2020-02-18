@@ -13,44 +13,44 @@ import androidx.appcompat.app.AppCompatActivity
 
 class MainActivity : AppCompatActivity() {
     lateinit var handler: Handler
-    val mInterval = 5 * 1000L
-    var currentColor: Colors = Colors.RED
-    var currentShape: Shape = Shape.TRIANGLE
-    private val imagesList = mutableListOf<ImageView>()
+    val ITEM_INTERVAL = 5 * 1000L
+    var menuitem: MENUITEM = MENUITEM.PIZZA
+    var topping: INGREDIENTS = INGREDIENTS.RED_CHILLI
+    private val menuItemImages = mutableListOf<ImageView>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        val imageArray = intArrayOf(R.id.ivVectorImage_1)
+        val imageArray = intArrayOf(R.id.iv_menu_item_image_1)
         // Can intialize mutiple images in an array, so mutiple images will be displayed
-        //val imageArray = intArrayOf(R.id.ivVectorImage_1, R.id.ivVectorImage_2)
+        //val imageArray = intArrayOf(R.id.iv_menu_item_image_1, R.id.iv_menu_item_image_2)
         handler = Handler()
         for (id in imageArray) {
             val imageView: ImageView = findViewById(id)
             imageView.visibility = View.VISIBLE
-            imagesList.add(imageView)
+            menuItemImages.add(imageView)
         }
         startTask()
     }
 
     fun loadBitmap() {
-        imagesList.forEach { imageView ->
-            val imageKey = "${currentColor.ordinal}_${currentShape.ordinal}"
+        menuItemImages.forEach { menuItemView ->
+            val imageKey = "${menuitem.ordinal}_${topping.ordinal}"
             CachedImage.getBitmapFromMemCache(imageKey)?.also {
-                imageView.setImageBitmap(it)
-                imageView.setColorFilter(Color.parseColor(currentColor.rgb))
+                menuItemView.setImageBitmap(it)
+                menuItemView.setColorFilter(Color.parseColor(topping.rgb))
             } ?: run {
-                imageView.setImageResource(Shape.getVectorDrawable(currentShape))
-                imageView.setColorFilter(Color.parseColor(currentColor.rgb))
+                menuItemView.setImageResource(MENUITEM.getVectorDrawable(menuitem))
+                menuItemView.setColorFilter(Color.parseColor(topping.rgb))
 
-                val bm = getBitMap(imageView.drawable as VectorDrawable)
+                val bm = getBitMap(menuItemView.drawable as VectorDrawable)
                 CachedImage.addImageToMemCache(
-                    "${currentColor.ordinal}_${currentShape.ordinal}",
+                    "${menuitem.ordinal}_${topping.ordinal}",
                     bm
                 )
             }
-            currentColor = currentColor.next()
-            currentShape = currentShape.next()
+            menuitem = menuitem.next()
+            topping = topping.next()
         }
     }
 
@@ -66,50 +66,50 @@ class MainActivity : AppCompatActivity() {
         return bitmap
     }
 
-    var mRepeatTask: Runnable = object : Runnable {
+    var mRepeatMenuItem: Runnable = object : Runnable {
         override fun run() {
             try {
                 loadBitmap()
             } finally {
-                handler.postDelayed(this, mInterval)
+                handler.postDelayed(this, ITEM_INTERVAL)
             }
         }
     }
 
     fun startTask() {
-        handler.post(mRepeatTask)
+        handler.post(mRepeatMenuItem)
     }
 
     fun stopTask() {
         handler.removeCallbacksAndMessages(null)
     }
 
-    enum class Colors(val value: Int, val rgb: String) {
-        RED(0, "#c94747"),
-        GREEN(1, "#516c5a"),
-        YELLOW(2, "#cd823f");
+    enum class INGREDIENTS(val value: Int, val rgb: String) {
+        RED_CHILLI(0, "#c94747"),
+        GREEN_CHILLI(1, "#516c5a"),
+        YELLOW_CAPSICUM(2, "#cd823f");
 
-        fun next(): Colors {
+        fun next(): INGREDIENTS {
             return values()[(ordinal + 1) % values().size]
         }
     }
 
-    enum class Shape(val value: Int) {
-        TRIANGLE(0),
-        RECTANGLE(1),
-        CIRCLE(2);
+    enum class MENUITEM(val value: Int) {
+        PIZZA(0),
+        HOTDOG(1),
+        CHAPATI(2);
 
         companion object {
-            fun getVectorDrawable(s: Shape): Int {
+            fun getVectorDrawable(s: MENUITEM): Int {
                 return when (s) {
-                    TRIANGLE -> R.drawable.ic_arrow_triangle_24dp
-                    RECTANGLE -> R.drawable.ic_rectangle_24dp
-                    CIRCLE -> R.drawable.ic_circle_24dp
+                    PIZZA -> R.drawable.ic_arrow_pizza_24dp
+                    HOTDOG -> R.drawable.ic_hotdog_24dp
+                    CHAPATI -> R.drawable.ic_chapati_24dp
                 }
             }
         }
 
-        fun next(): Shape {
+        fun next(): MENUITEM {
             return values()[(ordinal + 1) % values().size]
         }
     }

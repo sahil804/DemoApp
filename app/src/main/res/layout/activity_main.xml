@@ -7,7 +7,7 @@
     tools:context=".MainActivity">
 
     <ImageView
-        android:id="@+id/ivVectorImage_1"
+        android:id="@+id/iv_menu_item_image_1"
         android:layout_width="160dp"
         android:layout_height="160dp"
         android:layout_marginTop="64dp"
@@ -18,7 +18,7 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <ImageView
-        android:id="@+id/ivVectorImage_2"
+        android:id="@+id/iv_menu_item_image_2"
         android:layout_width="160dp"
         android:layout_height="160dp"
         android:layout_marginBottom="32dp"
