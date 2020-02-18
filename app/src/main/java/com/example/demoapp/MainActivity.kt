@@ -1,48 +1,57 @@
 package com.example.demoapp
 
-import android.graphics.*
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.drawable.VectorDrawable
 import android.os.Bundle
 import android.os.Handler
-import android.util.Log
+import android.view.View
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 
 
 class MainActivity : AppCompatActivity() {
-    lateinit var mImageView: ImageView
     lateinit var handler: Handler
     val mInterval = 5 * 1000L
     var currentColor: Colors = Colors.RED
     var currentShape: Shape = Shape.TRIANGLE
+    private val imagesList = mutableListOf<ImageView>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        val imageArray = intArrayOf(R.id.ivVectorImage_1)
+        // Can intialize mutiple images in an array, so mutiple images will be displayed
+        //val imageArray = intArrayOf(R.id.ivVectorImage_1, R.id.ivVectorImage_2)
         handler = Handler()
-
-        mImageView = findViewById(R.id.ivVectorImage)
+        for (id in imageArray) {
+            val imageView: ImageView = findViewById(id)
+            imageView.visibility = View.VISIBLE
+            imagesList.add(imageView)
+        }
         startTask()
-        //mImageView.setColorFilter(Colors.RED.ordinal)
     }
 
     fun loadBitmap() {
+        imagesList.forEach { imageView ->
+            val imageKey = "${currentColor.ordinal}_${currentShape.ordinal}"
+            CachedImage.getBitmapFromMemCache(imageKey)?.also {
+                imageView.setImageBitmap(it)
+                imageView.setColorFilter(Color.parseColor(currentColor.rgb))
+            } ?: run {
+                imageView.setImageResource(Shape.getVectorDrawable(currentShape))
+                imageView.setColorFilter(Color.parseColor(currentColor.rgb))
 
-        val imageKey = "${currentColor.ordinal}_${currentShape.ordinal}"
-        Log.d("Sahil", " key :::" + imageKey)
-
-        CachedImage.getBitmapFromMemCache(imageKey)?.also {
-            mImageView.setImageBitmap(it)
-            mImageView.setColorFilter(Color.parseColor(currentColor.rgb))
-        } ?: run {
-            mImageView.setImageResource(Shape.getVectorDrawbale(currentShape))
-            mImageView.setColorFilter(Color.parseColor(currentColor.rgb))
-
-            val bm = getBitMap(mImageView.drawable as VectorDrawable)
-            CachedImage.addImageToMemCache("${currentColor.ordinal}_${currentShape.ordinal}", bm)
+                val bm = getBitMap(imageView.drawable as VectorDrawable)
+                CachedImage.addImageToMemCache(
+                    "${currentColor.ordinal}_${currentShape.ordinal}",
+                    bm
+                )
+            }
+            currentColor = currentColor.next()
+            currentShape = currentShape.next()
         }
-        currentColor = currentColor.next()
-        currentShape = currentShape.next()
     }
 
     private fun getBitMap(drawable: VectorDrawable): Bitmap {
@@ -80,14 +89,6 @@ class MainActivity : AppCompatActivity() {
         GREEN(1, "#516c5a"),
         YELLOW(2, "#cd823f");
 
-        companion object {
-//            fun valueOf(value: Int) = values().find { it.value == value }
-//            fun getColorCode(c: Colors):Int {
-//                Log.d("Sahil"," getColorCode "+c.rgb)
-//                return c.rgb
-//            }
-        }
-
         fun next(): Colors {
             return values()[(ordinal + 1) % values().size]
         }
@@ -99,15 +100,13 @@ class MainActivity : AppCompatActivity() {
         CIRCLE(2);
 
         companion object {
-            fun getVectorDrawbale(s: Shape): Int {
+            fun getVectorDrawable(s: Shape): Int {
                 return when (s) {
                     TRIANGLE -> R.drawable.ic_arrow_triangle_24dp
                     RECTANGLE -> R.drawable.ic_rectangle_24dp
                     CIRCLE -> R.drawable.ic_circle_24dp
                 }
             }
-
-            //fun valueOf(value: Int) = values().find { it.value == value }
         }
 
         fun next(): Shape {
@@ -117,6 +116,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        CachedImage.clearCache()
         stopTask()
     }
 
